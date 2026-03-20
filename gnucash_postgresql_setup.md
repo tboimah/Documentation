@@ -1,20 +1,20 @@
-# 📝 GnuCash PostgreSQL Setup: Understanding Unix vs Database Users
+# GnuCash PostgreSQL Setup: Understanding Unix vs Database Users
 
-## 📅 Date
+## Date
 March 20, 2026
 
-## ✍️ Author
+## Author
 Thomas Boimah
 
 ---
 
-## 🎯 Overview
+## Overview
 
 This document explains the critical distinction between Unix shell users and PostgreSQL database users, and how this applies to our GnuCash setup on webschool.sjcompute.org.
 
 ---
 
-## 🎯 The Core Distinction
+## The Core Distinction
 
 | Unix Shell Users | PostgreSQL Users |
 |----------------|-----------------|
@@ -26,46 +26,55 @@ This document explains the critical distinction between Unix shell users and Pos
 
 ---
 
-## 🧠 Key Insight
+## Key Insight
 
-PostgreSQL users are not people — they are roles with permissions.
+PostgreSQL users are not people, they are roles with permissions.
 
 ---
 
-## 🏠 Analogy (Refined)
+## Analogy (Refined)
 
 - Unix user = Key to the front door (SSH, port 22)
 - PostgreSQL user = Key to a window (port 5432)
 
 ---
 
-## 🏢 Our Current Setup
+## Our Current Setup
 
-### Unix Users (SSH)
-- tboimah
-- jelkner
-- dcammue
-- zOnny
-- postgres
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    WEBSCHOOL SERVER                         │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│  ┌─────────────────────┐      ┌─────────────────────────┐   │
+│  │   UNIX USERS        │      │   POSTGRESQL USERS      │   │
+│  │   (SSH - Port 22)   │      │   (Port 5432)           │   │
+│  ├─────────────────────┤      ├─────────────────────────┤   │
+│  │ • tboimah           │      │ • tboimah (login)       │   │
+│  │ • jelkner           │      │ • jelkner (login)       │   │
+│  │ • dcammue           │      │ • dcammue (login)       │   │
+│  │ • zOnny             │      │ • svaye (login)         │   │
+│  │ • postgres          │      │ • ved (login)           │   │
+│  └─────────────────────┘      │ • devesh (login)        │   │
+│                               │ • vrishin (login)       │   │
+│                               │ • klarios (login)       │   │
+│                               │ • gnucash (NO LOGIN!)   │   │
+│                               └─────────────────────────┘   │
+│                                         ↓                   │
+│                               ┌─────────────────────────┐   │
+│                               │   DATABASES             │   │
+│                               │   Owned by: gnucash     │   │
+│                               ├─────────────────────────┤   │
+│                               │ • jetroweb              │   │
+│                               │ • sjcompute             │   │
+│                               │ • novaweb               │   │
+│                               │ • secosol               │   │
+│                               │ • jelkner               │   │
+│                               └─────────────────────────┘   │
+└─────────────────────────────────────────────────────────────┘
+```
 
-### PostgreSQL Roles
-
-#### Login Roles
-- tboimah
-- jelkner
-- dcammue
-- svaye
-- ved
-- devesh
-- vrishin
-- klarios
-
-#### Non-Login Role
-- gnucash (NOLOGIN)
-
----
-
-## 🎯 The Recommended GnuCash Setup
+## The Recommended GnuCash Setup
 
 | Role | Type | Purpose |
 |------|------|--------|
@@ -74,7 +83,7 @@ PostgreSQL users are not people — they are roles with permissions.
 
 ---
 
-## 🔍 Why gnucash Must Be NOLOGIN
+## Why gnucash Must Be NOLOGIN
 
 - Security: Cannot login, cannot be hacked
 - Separation: Ownership ≠ usage
@@ -83,7 +92,7 @@ PostgreSQL users are not people — they are roles with permissions.
 
 ---
 
-## 🔗 How Access Works
+## How Access Works
 
 1. User logs in with PostgreSQL credentials
 2. PostgreSQL checks pg_hba.conf
@@ -93,13 +102,13 @@ PostgreSQL users are not people — they are roles with permissions.
 
 ---
 
-## ❌ Common Mistake
+## Common Mistake
 
 Using SSH keys for GnuCash authentication is incorrect.
 
 ---
 
-## ✅ Correct GnuCash Connection
+## Correct GnuCash Connection
 
 Host: webschool.sjcompute.org  
 Port: 5432  
@@ -109,7 +118,7 @@ Password: your_postgres_password
 
 ---
 
-## 🎯 Key Takeaways
+## Key Takeaways
 
 - Unix users ≠ Database users
 - PostgreSQL roles control access
@@ -119,6 +128,3 @@ Password: your_postgres_password
 
 ---
 
-## 🚀 Status
-
-Ready to share with team
