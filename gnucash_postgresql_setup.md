@@ -10,57 +10,34 @@ Thomas Boimah
 
 ## Overview
 
-This document explains the critical distinction between Unix shell users and PostgreSQL database users, and how this applies to our GnuCash setup on webschool.sjcompute.org.
+This document explains the distinction between Unix shell users and PostgreSQL database users, and applies those concepts to our GnuCash setup on webschool.sjcompute.org.
+
+This demonstrates understanding of database concepts and system architecture.
 
 ---
 
-## The Core Distinction
-
-| Unix Shell Users | PostgreSQL Users |
-|----------------|-----------------|
-| Access the operating system | Access the database |
-| Use SSH (port 22) | Use PostgreSQL (port 5432) |
-| Authenticate with SSH keys/passwords | Authenticate with DB password |
-| Stored in /etc/passwd, /etc/shadow | Stored in pg_roles |
-| Run system commands | Perform DB operations only |
-
----
-
-## Key Insight
-
-PostgreSQL users are not people, they are roles with permissions.
-
----
-
-## Analogy (Refined)
-
-- Unix user = Key to the front door (SSH, port 22)
-- PostgreSQL user = Key to a window (port 5432)
-
----
-
-## Our Current Setup
+## System Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                    WEBSCHOOL SERVER                         │
 ├─────────────────────────────────────────────────────────────┤
-│                                                              │
+│                                                             │
 │  ┌─────────────────────┐      ┌─────────────────────────┐   │
 │  │   UNIX USERS        │      │   POSTGRESQL USERS      │   │
 │  │   (SSH - Port 22)   │      │   (Port 5432)           │   │
 │  ├─────────────────────┤      ├─────────────────────────┤   │
-│  │ • tboimah           │      │ • tboimah (login)       │   │
 │  │ • jelkner           │      │ • jelkner (login)       │   │
+│  │ • tboimah           │      │ • tboimah (login)       │   │
 │  │ • dcammue           │      │ • dcammue (login)       │   │
 │  │ • zOnny             │      │ • svaye (login)         │   │
-│  │ • postgres          │      │ • ved (login)           │   │
-│  └─────────────────────┘      │ • devesh (login)        │   │
-│                               │ • vrishin (login)       │   │
-│                               │ • klarios (login)       │   │
-│                               │ • gnucash (NO LOGIN!)   │   │
-│                               └─────────────────────────┘   │
-│                                         ↓                   │
+│  │ • svaye             │      │ • ved (login)           │   │
+│  | • jkollie           |      │ • devesh (login)        │   │
+│  | • freena            |      │ • vrishin (login)       │   │
+│  | • kthomas           |      │ • klarios (login)       │   │
+│  | • gabriel           |      │ • gnucash (NO LOGIN!)   │   │
+│  | • jejemplo          |      └─────────────────────────┘   │
+│  └─────────────────────┘                                    │
 │                               ┌─────────────────────────┐   │
 │                               │   DATABASES             │   │
 │                               │   Owned by: gnucash     │   │
@@ -69,62 +46,122 @@ PostgreSQL users are not people, they are roles with permissions.
 │                               │ • sjcompute             │   │
 │                               │ • novaweb               │   │
 │                               │ • secosol               │   │
-│                               │ • jelkner               │   │
+│                               │                         │   │
 │                               └─────────────────────────┘   │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-## The Recommended GnuCash Setup
+---
 
-| Role | Type | Purpose |
-|------|------|--------|
-| gnucash | NOLOGIN | Owns all databases |
-| Users | LOGIN | Access data via membership |
+## Core Concept
+
+Unix users and PostgreSQL users are completely separate systems.
+
+| Unix Users | PostgreSQL Users |
+|-----------|-----------------|
+| Access OS | Access database |
+| SSH (port 22) | PostgreSQL (port 5432) |
+| Stored in system files | Stored in pg_roles |
+| Use SSH keys/passwords | Use DB credentials |
 
 ---
 
-## Why gnucash Must Be NOLOGIN
+## What is a "User"?
 
-- Security: Cannot login, cannot be hacked
-- Separation: Ownership ≠ usage
-- Flexibility: Users can change without affecting data
-- Best Practice: RBAC model
+A user is not a person.
+
+A user is:
+> A set of credentials and permissions stored in a system.
+
+---
+
+## Applying Database Knowledge
+
+### 1. PostgreSQL is the DBMS
+- GnuCash is an application
+- PostgreSQL stores the data
+
+### 2. Users are Roles
+- Stored in `pg_roles`
+- May have LOGIN or NOLOGIN
+
+### 3. Role-Based Access Control (RBAC)
+```sql
+GRANT gnucash TO username;
+```
+
+Users inherit permissions from roles.
+
+### 4. Client-Server Model
+- GnuCash = client
+- PostgreSQL = server
+
+---
+
+## Key Discovery
+
+The recommended setup is:
+
+> Use a NON-LOGIN role to own the database.
+
+---
+
+## Why gnucash is NOLOGIN
+
+- Owns all databases
+- Cannot log in
+- Has no password
+- Improves security
+- Separates ownership from access
 
 ---
 
 ## How Access Works
 
-1. User logs in with PostgreSQL credentials
-2. PostgreSQL checks pg_hba.conf
-3. Verifies password
-4. Checks role membership
-5. Inherits permissions from gnucash
+1. User opens GnuCash
+2. Connects to PostgreSQL (port 5432)
+3. Enters DB username/password
+4. PostgreSQL authenticates user
+5. User inherits permissions from gnucash
 
 ---
 
 ## Common Mistake
 
-Using SSH keys for GnuCash authentication is incorrect.
+Using SSH authentication for GnuCash is incorrect.
+
+- SSH → Unix (port 22)
+- PostgreSQL → Database (port 5432)
 
 ---
 
-## Correct GnuCash Connection
+## Correct Connection
 
 Host: webschool.sjcompute.org  
 Port: 5432  
 Database: jetroweb  
-Username: your_postgres_user  
-Password: your_postgres_password  
+Username: PostgreSQL user  
+Password: PostgreSQL password  
 
 ---
 
-## Key Takeaways
+## Final Understanding
 
-- Unix users ≠ Database users
-- PostgreSQL roles control access
-- gnucash is a non-login owner role
+- Unix users ≠ PostgreSQL users
+- GnuCash ≠ Database
+- PostgreSQL = DBMS
+- gnucash = non-login owner role
 - Users inherit permissions
-- GnuCash connects to PostgreSQL, not Unix
 
 ---
 
+## Conclusion
+
+This setup is:
+- Secure
+- Scalable
+- Based on database best practices
+
+It demonstrates correct use of PostgreSQL roles and system separation.
+
+---
